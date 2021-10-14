@@ -7,12 +7,68 @@
     tools:context=".MainActivity">
 
     <TextView
+        android:id="@+id/details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World to everyone in the world"
+        android:text="@string/details"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="20dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintBottom_toTopOf="@+id/username"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+    <EditText
+        android:id="@+id/username"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:autofillHints="@string/hint_username"
+        android:hint="@string/hint_username"
+        android:inputType="text"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        app:layout_constraintBottom_toTopOf="@+id/repo_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintVertical_chainStyle="packed"
+        app:layout_constraintTop_toBottomOf="@+id/details"/>
+
+    <EditText
+        android:id="@+id/repo_name"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:autofillHints="@string/hint_repo_name"
+        android:hint="@string/hint_repo_name"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        app:layout_constraintBottom_toTopOf="@+id/submit_btn"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/username" />
+
+    <Button
+        android:id="@+id/submit_btn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:text="@string/submit"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintTop_toBottomOf="@+id/repo_name"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
