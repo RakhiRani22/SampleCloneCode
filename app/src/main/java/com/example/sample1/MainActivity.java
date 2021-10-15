@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //Log added
+
         Log.i("TAG", "Sample code on create");
         final EditText usernameText = findViewById(R.id.username);
         final EditText repoNameText = findViewById(R.id.repo_name);
@@ -87,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "RAR:: url 2:"+url[1]);
                 builder.addHeader("Authorization", url[1]);
             }
+
             Log.i(TAG, "RAR:: Builder::"+builder.toString());
             try (Response response = client.newCall(builder.build()).execute()) {
                 //can only access response once

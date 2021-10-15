@@ -11,6 +11,12 @@ public class CommitInfo {
         commitMessage = "Commit Message";
     }
 
+    public CommitInfo(int index) {
+        this.authorName = authorName+index;
+        commitHash = "Commit#: "+index;
+        commitMessage = "Commit Message"+index;
+    }
+
     public void setCommitMessage(String commitMessage) {
         this.commitMessage = new StringBuilder("Message: ").append(commitMessage).toString();
     }

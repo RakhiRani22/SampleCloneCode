@@ -26,16 +26,20 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
     private static final String REPOS_ENDPOINT = "repos";
     private static final String COMMITS_ENDPOINT = "commits";
     private static final String TAG = "RepoCommitInfoActivity";
+    private static final String PER_PAGE = "per_page";
+    private static final String PAGE_NUMBER = "page";
+    private static final String PER_PAGE_SIZE = "1";
     private ArrayList<CommitInfo> commitInfoList = new ArrayList<>();
     private RecyclerView.Adapter adapter;
+    private int pageNumber = 0;
+    boolean isLoading = false;
+    private String username;
+    private String repositoryName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_repo_commit_info);
-
-        String username;
-        String repositoryName;
 
         Intent intent = getIntent();
         username = intent.getStringExtra("username");
@@ -50,18 +54,11 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
         RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView. addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration. VERTICAL));
+        initScrollListener(recyclerView);
 
         adapter = new CommitInfoAdapter(this, commitInfoList);
         recyclerView.setAdapter(adapter);
-
-        Uri.Builder builder = new Uri.Builder();
-        builder.scheme(HTTPS)
-                .authority(GIT_HUB_API)
-                .appendPath(REPOS_ENDPOINT)
-                .appendPath(username)
-                .appendPath(repositoryName)
-                .appendPath(COMMITS_ENDPOINT);
-        new NetworkWork().execute(builder.build().toString(), null);
+        requestToLoadData(username, repositoryName, PER_PAGE_SIZE, pageNumber);
     }
 
     class NetworkWork extends AsyncTask<String, Void, String> {
@@ -89,54 +86,122 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(String s) {
+
+            isLoading = false;
             if (!TextUtils.isEmpty(s)) {
                 decodeJson(s);
             } else {
+                Log.e(TAG, "RAR:: isLoading = FALSE");
+                isLoading = false;
                 Toast.makeText(RepoCommitInfoActivity.this, "Error fetching file structure!", Toast.LENGTH_SHORT).show();
             }
         }
     }
 
     void decodeJson(String responseBody) {
-        if (TextUtils.isEmpty(responseBody) || responseBody.length() < 50) {
+
+        if (TextUtils.isEmpty(responseBody)) {
+            Log.e(TAG, "RAR:: isLoading = FALSE");
+            isLoading = false;
             Toast.makeText(this, "JSON response error: " + responseBody, Toast.LENGTH_SHORT).show();
         }
 
-        commitInfoList.clear();
+        //commitInfoList.clear();
 
         try {
-            JSONArray jsonRoot = new JSONArray(responseBody);
-            Log.i(TAG, "RAR:: jsonRoot:"+jsonRoot.toString());
-
-            for (int i = 0; i < jsonRoot.length(); i++) {
-                JSONObject child = jsonRoot.optJSONObject(i);
-                String sha = child.optString("sha");
-                String commit = child.optString("commit");
-                CommitInfo commitInfoObj = new CommitInfo();
-                commitInfoObj.setCommitHash(sha);
-                if(!commit.isEmpty())
-                {
-                    JSONObject commitInfo = new JSONObject(commit);
-                    String authorName = new JSONObject(commitInfo.optString("author")).optString("name");
-                    String message = commitInfo.optString("message");
-                    commitInfoObj.setAuthorName(authorName);
-                    commitInfoObj.setCommitMessage(message);
-                    Log.i(TAG, "RAR:: Commit Hash:"+sha);
-                    Log.i(TAG, "RAR:: Author:"+authorName);
-                    Log.i(TAG,"RAR:: Message:"+message);
-                    Log.i(TAG,"RAR:: -----------");
+            Log.i(TAG, "RAR:: responseBody:" + responseBody+" char:"+responseBody.charAt(0));
+            if (responseBody.charAt(0) == '{') {
+                Log.e(TAG, "RAR:: isLoading = FALSE");
+                isLoading = false;
+                String jsonRoot1 = new JSONObject(responseBody).getString("message");
+                if(jsonRoot1.equalsIgnoreCase("Git Repository is empty.")) {
+                    Toast.makeText(this, "No commit for " + repositoryName, Toast.LENGTH_SHORT).show();
                 }
-                commitInfoList.add(commitInfoObj);
+            } else {
+                JSONArray jsonRoot = new JSONArray(responseBody);
+                Log.i(TAG, "RAR:: jsonRoot:" + jsonRoot.toString());
+
+
+                if(jsonRoot.length() > 0) {
+                    Log.e(TAG, "RAR:: isLoading = FALSE");
+                    isLoading = false;
+                    for (int i = 0; i < jsonRoot.length(); i++) {
+                        JSONObject child = jsonRoot.optJSONObject(i);
+                        String sha = child.optString("sha");
+                        String commit = child.optString("commit");
+                        CommitInfo commitInfoObj = new CommitInfo();
+                        commitInfoObj.setCommitHash(sha);
+                        if (!commit.isEmpty()) {
+                            JSONObject commitInfo = new JSONObject(commit);
+                            String authorName = new JSONObject(commitInfo.optString("author")).optString("name");
+                            String message = commitInfo.optString("message");
+                            commitInfoObj.setAuthorName(authorName);
+                            commitInfoObj.setCommitMessage(message);
+                            Log.i(TAG, "RAR:: Commit Hash:" + sha);
+                            Log.i(TAG, "RAR:: Author:" + authorName);
+                            Log.i(TAG, "RAR:: Message:" + message);
+                            Log.i(TAG, "RAR:: -----------");
+                        }
+                        commitInfoList.add(commitInfoObj);
+                    }
+                    for (int i = 0; i < 25; i++) {
+                        commitInfoList.add(new CommitInfo(((pageNumber - 1) * 25) + i));
+                    }
+                }
+                else{
+                    Log.e(TAG, "RAR:: isLoading = TRUE");
+                    isLoading = true;
+                }
+
+                if (!commitInfoList.isEmpty()) {
+                    Log.i(TAG, "RAR:: ********Notify DataSetChanged:"+commitInfoList.size());
+                    adapter.notifyDataSetChanged();
+                } else {
+                    Toast.makeText(this, "No files returned from JSON!", Toast.LENGTH_SHORT).show();
+                }
+            }
+            } catch(JSONException e){
+                Log.e("parseJSON", "Cannot parse JSON", e);
+                finish();
+            }
+    }
+
+    private void requestToLoadData(String username, String repositoryName, String perPage, int pageNumber){
+        Log.i(TAG,"RAR:: requestToLoadData:"+perPage+" pagenumber:"+pageNumber);
+        Uri.Builder builder = new Uri.Builder();
+        builder.scheme(HTTPS)
+                .authority(GIT_HUB_API)
+                .appendPath(REPOS_ENDPOINT)
+                .appendPath(username)
+                .appendPath(repositoryName)
+                .appendPath(COMMITS_ENDPOINT);
+        builder.appendQueryParameter(PER_PAGE, perPage);
+        this.pageNumber = pageNumber + 1;
+        builder.appendQueryParameter(PAGE_NUMBER, String.valueOf(this.pageNumber));
+        new NetworkWork().execute(builder.build().toString(), null);
+        Log.i(TAG,"RAR:: builder value********:"+builder.build().toString());
+    }
+
+    private void initScrollListener(RecyclerView recyclerView) {
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
             }
 
-            if (!commitInfoList.isEmpty()) {
-                adapter.notifyDataSetChanged();
-            } else {
-                Toast.makeText(this, "No files returned from JSON!", Toast.LENGTH_SHORT).show();
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                Log.i(TAG,"RAR:: isLoading"+isLoading);
+                if (!isLoading) {
+                    if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == commitInfoList.size() - 1) {
+                        requestToLoadData(username, repositoryName, PER_PAGE_SIZE, pageNumber);
+                        isLoading = true;
+                    }
+                }
             }
-        } catch (JSONException e) {
-            Log.e("parseJSON", "Cannot parse JSON", e);
-            finish();
-        }
+        });
     }
 }
