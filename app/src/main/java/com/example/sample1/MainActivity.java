@@ -10,7 +10,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.example.sample1.model.repoinfo.RepoInstance;
-import com.example.sample1.util.RetrofitClient;
+import com.example.sample1.network.RetrofitClient;
 import com.example.sample1.util.Utility;
 import java.util.ArrayList;
 import java.util.List;

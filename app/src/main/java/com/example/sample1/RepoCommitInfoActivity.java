@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.sample1.model.commitinfo.CommitInstance;
-import com.example.sample1.util.RetrofitClient;
+import com.example.sample1.network.RetrofitClient;
 import com.example.sample1.util.Utility;
 import java.util.ArrayList;
 import java.util.List;
