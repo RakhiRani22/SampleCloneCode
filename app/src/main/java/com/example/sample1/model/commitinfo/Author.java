@@ -63,19 +63,6 @@ public class Author {
                     '}';
         }
 
-        /*@Override
-        public String toString() {
-            return "CommitInstance{" +
-                    "sha='" + sha + '\'' +
-                    ", commit=" + commit +
-                    '}';
-        }*/
-
-       /* public CommitInstance(String sha, Commit commit) {
-            this.sha = sha;
-            this.commit = commit;
-        }*/
-
 
         public String getSha() {
             return sha;

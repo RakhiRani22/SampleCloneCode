@@ -5,19 +5,6 @@ public class Commit {
     Committer committer;
     String message;
 
-    /*public Commit(Author author, Committer committer) {
-        this.author = author;
-        this.committer = committer;
-    }
-
-    @Override
-    public String toString() {
-        return "Commit{" +
-                "author=" + author +
-                ", committer=" + committer +
-                '}';
-    }*/
-
     public Commit(Author author, Committer committer, String message) {
         this.author = author;
         this.committer = committer;
