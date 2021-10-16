@@ -11,14 +11,19 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.sample1.model.CommitInstance;
+import com.example.sample1.util.RetrofitClient;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
 
 public class RepoCommitInfoActivity extends AppCompatActivity {
     private static final String HTTPS = "https";
@@ -59,6 +64,7 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
         adapter = new CommitInfoAdapter(this, commitInfoList);
         recyclerView.setAdapter(adapter);
         requestToLoadData(username, repositoryName, PER_PAGE_SIZE, pageNumber);
+        getCommits(1);
     }
 
     class NetworkWork extends AsyncTask<String, Void, String> {
@@ -201,6 +207,35 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
                         isLoading = true;
                     }
                 }
+            }
+        });
+    }
+
+    private void getCommits(int pageNumber) {
+        //Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitAllInformation();
+        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformation(1, pageNumber);
+        call.enqueue(new Callback<List<CommitInstance>>() {
+            @Override
+            public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
+                List<CommitInstance> commitInstanceList = response.body();
+
+                //Creating an String array for the ListView
+                String[] commitResponse = new String[commitInstanceList.size()];
+                Log.i(TAG, "RAR:: **********response.body():"+response.body());
+                //looping through all the heroes and inserting the names inside the string array
+                for (int i = 0; i < commitInstanceList.size(); i++) {
+                    commitResponse[i] = commitInstanceList.get(i).getCommit().getMessage();
+                    Log.i(TAG, "RAR:: **********Commit Message:"+commitResponse[i]);
+                }
+
+                //displaying the string array into listview
+                //listView.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, commitInstanceList));
+            }
+
+            @Override
+            public void onFailure(Call<List<CommitInstance>> call, Throwable t) {
+                Log.i(TAG, "RAR:: Error:"+t.getMessage());
+                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
