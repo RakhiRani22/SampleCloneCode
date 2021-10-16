@@ -1,17 +1,17 @@
 package com.example.sample1;
 
-import com.example.sample1.model.CommitInstance;
+import com.example.sample1.model.commitinfo.Author;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CommitInfoResponse {
-    List<CommitInstance> commitResponse;
+    List<Author.CommitInstance> commitResponse;
 
     // public constructor is necessary for collections
     public CommitInfoResponse() {
-        commitResponse = new ArrayList<CommitInstance>();
+        commitResponse = new ArrayList<Author.CommitInstance>();
     }
 
     public static CommitInfoResponse parseJSON(String response) {

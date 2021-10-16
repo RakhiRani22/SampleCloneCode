@@ -1,4 +1,4 @@
-package com.example.sample1.model;
+package com.example.sample1.model.commitinfo;
 
 public class Committer {
     String name;
