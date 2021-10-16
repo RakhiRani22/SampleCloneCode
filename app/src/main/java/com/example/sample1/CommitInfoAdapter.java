@@ -6,15 +6,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.sample1.model.CommitInstance;
 import java.util.List;
 
 public class CommitInfoAdapter extends RecyclerView.Adapter<CommitInfoAdapter.ViewHolder> {
-    private List<CommitInfo> mData;
+    private List<CommitInstance> mData;
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
     // data is passed into the constructor
-    CommitInfoAdapter(Context context, List<CommitInfo> data) {
+    CommitInfoAdapter(Context context, List<CommitInstance> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }
@@ -29,10 +30,10 @@ public class CommitInfoAdapter extends RecyclerView.Adapter<CommitInfoAdapter.Vi
     // binds the data to the TextView in each row
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        CommitInfo commitInfo = mData.get(position);
-        holder.authorNameText.setText(commitInfo.authorName);
-        holder.commitHashText.setText(commitInfo.commitHash);
-        holder.commitMessageText.setText(commitInfo.commitMessage);
+        CommitInstance commitInstance = mData.get(position);
+        holder.authorNameText.setText(commitInstance.getCommit().getAuthor().getName());
+        holder.commitHashText.setText(commitInstance.getSha());
+        holder.commitMessageText.setText(commitInstance.getCommit().getMessage());
     }
 
     // total number of rows
@@ -62,7 +63,7 @@ public class CommitInfoAdapter extends RecyclerView.Adapter<CommitInfoAdapter.Vi
         }
     }
 
-    CommitInfo getItem(int id) {
+    CommitInstance getItem(int id) {
         return mData.get(id);
     }
 

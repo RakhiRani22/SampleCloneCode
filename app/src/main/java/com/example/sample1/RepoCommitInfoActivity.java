@@ -11,7 +11,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import com.example.sample1.model.Author;
+import com.example.sample1.model.Commit;
 import com.example.sample1.model.CommitInstance;
+import com.example.sample1.model.Committer;
 import com.example.sample1.util.RetrofitClient;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,10 +36,11 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
     private static final String TAG = "RepoCommitInfoActivity";
     private static final String PER_PAGE = "per_page";
     private static final String PAGE_NUMBER = "page";
-    private static final String PER_PAGE_SIZE = "1";
+    private static final int PER_PAGE_SIZE = 1;
     private ArrayList<CommitInfo> commitInfoList = new ArrayList<>();
+    private ArrayList<CommitInstance> commitInformationList = new ArrayList<>();
     private RecyclerView.Adapter adapter;
-    private int pageNumber = 0;
+    private int pageNumber = 1;
     boolean isLoading = false;
     private String username;
     private String repositoryName;
@@ -61,10 +65,9 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
         recyclerView. addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration. VERTICAL));
         initScrollListener(recyclerView);
 
-        adapter = new CommitInfoAdapter(this, commitInfoList);
+        adapter = new CommitInfoAdapter(this, commitInformationList);
         recyclerView.setAdapter(adapter);
-        requestToLoadData(username, repositoryName, PER_PAGE_SIZE, pageNumber);
-        getCommits(1);
+        getCommitInformationInPages(pageNumber);
     }
 
     class NetworkWork extends AsyncTask<String, Void, String> {
@@ -202,8 +205,9 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
                 LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
                 Log.i(TAG,"RAR:: isLoading"+isLoading);
                 if (!isLoading) {
-                    if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == commitInfoList.size() - 1) {
-                        requestToLoadData(username, repositoryName, PER_PAGE_SIZE, pageNumber);
+                    if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == commitInformationList.size() - 1) {
+                        //requestToLoadData(username, repositoryName, String.valueOf(PER_PAGE_SIZE), pageNumber);
+                        getCommitInformationInPages(nextPageNumber());
                         isLoading = true;
                     }
                 }
@@ -211,22 +215,30 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
         });
     }
 
-    private void getCommits(int pageNumber) {
-        //Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitAllInformation();
-        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformation(1, pageNumber);
+    private void getCommitInformationInPages(int pageNumber) {
+        Log.d(TAG, "RAR:: ********NEW REQUEST************");
+        Log.d(TAG, "RAR:: getCommitInformationInPages"+pageNumber);
+        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformation(PER_PAGE_SIZE, pageNumber);
         call.enqueue(new Callback<List<CommitInstance>>() {
             @Override
             public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
                 List<CommitInstance> commitInstanceList = response.body();
+                if(commitInstanceList.size() > 0){
+                    isLoading = false;
+                }
+                commitInformationList.addAll(commitInstanceList);
 
-                //Creating an String array for the ListView
-                String[] commitResponse = new String[commitInstanceList.size()];
                 Log.i(TAG, "RAR:: **********response.body():"+response.body());
                 //looping through all the heroes and inserting the names inside the string array
-                for (int i = 0; i < commitInstanceList.size(); i++) {
-                    commitResponse[i] = commitInstanceList.get(i).getCommit().getMessage();
-                    Log.i(TAG, "RAR:: **********Commit Message:"+commitResponse[i]);
+                for (int index = 1; index < 25; index++) {
+                    String position = String.valueOf(((pageNumber - 1) * 25) + index);
+                    Author author = new Author("Author:"+position, null, null);
+                    Committer committer = new Committer("Committer:"+position, null, null);
+                    String message = "Message: ******** "+position+" ******";
+                    commitInformationList.add(new CommitInstance(position, new Commit(author, committer, message)));
+                    Log.i(TAG, "RAR:: **********Commit Message:"+message);
                 }
+                adapter.notifyDataSetChanged();
 
                 //displaying the string array into listview
                 //listView.setAdapter(new ArrayAdapter<String>(getApplicationContext(), android.R.layout.simple_list_item_1, commitInstanceList));
@@ -235,8 +247,14 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<CommitInstance>> call, Throwable t) {
                 Log.i(TAG, "RAR:: Error:"+t.getMessage());
+                isLoading = false;
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private int nextPageNumber(){
+        pageNumber = pageNumber + 1;
+        return pageNumber;
     }
 }
