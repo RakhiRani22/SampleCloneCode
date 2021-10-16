@@ -1,10 +1,10 @@
 package com.example.sample1.component;
 
-import com.example.sample1.ApiModule;
-import com.example.sample1.AppModule;
+import com.example.sample1.module.ApiModule;
+import com.example.sample1.module.AppModule;
 import com.example.sample1.MainActivity;
 import com.example.sample1.RepoCommitInfoActivity;
-import com.example.sample1.util.Utility;
+
 import javax.inject.Singleton;
 import dagger.Component;
 

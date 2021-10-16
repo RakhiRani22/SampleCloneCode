@@ -1,4 +1,4 @@
-package com.example.sample1;
+package com.example.sample1.module;
 
 import android.app.Application;
 
@@ -11,7 +11,7 @@ public
 class AppModule {
     private Application mApplication;
 
-    AppModule(Application mApplication) {
+    public AppModule(Application mApplication) {
         this.mApplication = mApplication;
     }
 

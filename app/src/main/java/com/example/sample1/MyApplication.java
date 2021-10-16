@@ -4,6 +4,8 @@ import android.app.Application;
 import android.widget.Toast;
 import com.example.sample1.component.ApiComponent;
 import com.example.sample1.component.DaggerApiComponent;
+import com.example.sample1.module.ApiModule;
+import com.example.sample1.module.AppModule;
 import com.example.sample1.network.Api;
 
 public class MyApplication extends Application {

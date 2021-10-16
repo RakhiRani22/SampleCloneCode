@@ -1,4 +1,4 @@
-package com.example.sample1;
+package com.example.sample1.module;
 
 import android.app.Application;
 import com.google.gson.FieldNamingPolicy;
@@ -18,7 +18,7 @@ public
 class ApiModule {
     String mBaseUrl;
 
-    ApiModule(String mBaseUrl) {
+    public ApiModule(String mBaseUrl) {
         this.mBaseUrl = mBaseUrl;
     }
 
