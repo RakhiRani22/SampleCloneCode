@@ -1,4 +1,4 @@
-package com.example.sample1;
+package com.example.sample1.ui;
 
 import android.app.Application;
 import android.content.Intent;
@@ -9,6 +9,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.sample1.CommitInfoAdapter;
+import com.example.sample1.MyApplication;
+import com.example.sample1.R;
 import com.example.sample1.model.commitinfo.CommitInstance;
 import com.example.sample1.network.Api;
 import com.example.sample1.util.Utility;

@@ -15,11 +15,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme" >
         <activity
-            android:name=".RepoCommitInfoActivity"
+            android:name=".ui.RepoCommitInfoActivity"
             android:label="@string/title_activity_repo_commit_info"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
-        <activity android:name=".MainActivity" >
+        <activity android:name=".ui.MainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

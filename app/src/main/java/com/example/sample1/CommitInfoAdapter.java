@@ -14,7 +14,7 @@ public class CommitInfoAdapter extends RecyclerView.Adapter<CommitInfoAdapter.Vi
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
 
-    CommitInfoAdapter(Context context, List<CommitInstance> data) {
+    public CommitInfoAdapter(Context context, List<CommitInstance> data) {
         this.mInflater = LayoutInflater.from(context);
         this.mData = data;
     }

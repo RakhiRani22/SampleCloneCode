@@ -1,4 +1,4 @@
-package com.example.sample1;
+package com.example.sample1.ui;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,6 +9,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.example.sample1.MyApplication;
+import com.example.sample1.R;
 import com.example.sample1.model.repoinfo.RepoInstance;
 import com.example.sample1.network.Api;
 import com.example.sample1.util.DataValidator;
