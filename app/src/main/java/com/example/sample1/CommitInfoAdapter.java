@@ -37,7 +37,7 @@ public class CommitInfoAdapter extends RecyclerView.Adapter<CommitInfoAdapter.Vi
     public int getItemCount() {
         return mData.size();
     }
-    
+
     public class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
         TextView authorNameText;
         TextView commitHashText;

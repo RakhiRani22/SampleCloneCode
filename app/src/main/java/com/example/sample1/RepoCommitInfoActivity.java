@@ -18,7 +18,7 @@ import retrofit2.Callback;
 
 public class RepoCommitInfoActivity extends AppCompatActivity {
     private static final String TAG = "RepoCommitInfoActivity";
-    private static final int PER_PAGE_SIZE = 1;
+    private static final int PER_PAGE_SIZE = 25;
     private ArrayList<CommitInstance> commitInformationList = new ArrayList<>();
     private RecyclerView.Adapter adapter;
     private int pageNumber = 1;
@@ -83,14 +83,15 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
             public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
                 Log.i(TAG, "RAR:: **********response.body():" + response.body());
                 List<CommitInstance> commitInstanceList = response.body();
-                if(commitInstanceList != null) {
-                    isLoading = false;
+                if(commitInstanceList != null) { //No commit found
+                    if(!commitInstanceList.isEmpty()) { //Reached end of server data, no more request needed as last response was empty
+                        isLoading = false;
 
-                    commitInformationList.addAll(commitInstanceList);
+                        commitInformationList.addAll(commitInstanceList);
 
-                    Log.i(TAG, "RAR:: **********response.body():" + response.body());
+                        Log.i(TAG, "RAR:: **********response.body():" + response.body());
 
-                    //To test
+                        //To test
                     /*for (int index = 1; index < 25; index++) {
                         String position = String.valueOf(((pageNumber - 1) * 25) + index);
                         Author author = new Author("Author:" + position, null, null);
@@ -99,7 +100,8 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
                         commitInformationList.add(new CommitInstance(position, new Commit(author, committer, message)));
                         Log.i(TAG, "RAR:: **********Commit Message:" + message);
                     }*/
-                    adapter.notifyDataSetChanged();
+                        adapter.notifyDataSetChanged();
+                    }
                 }
                 else
                 {

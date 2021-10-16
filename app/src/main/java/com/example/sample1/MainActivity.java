@@ -59,8 +59,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.i(TAG, "RAR:: **********response.body():" + response.body());
 
                 repoList.clear();
-                String responseString = response.body().toString();
-                Log.i(TAG, "RAR:: responseString::"+responseString);
+
                 if (response.code() == 401) {
                     Toast.makeText(MainActivity.this, "Two-factor authentication is active, please enter code.", Toast.LENGTH_SHORT).show();
                 } else if (response.code() == 403) {
@@ -70,13 +69,17 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Cannot fetch data from GitHub! Please verify the username", Toast.LENGTH_SHORT).show();
                 }
                 else {
-                    List<RepoInstance> repositoryList = response.body();
-                    if (TextUtils.isEmpty(response.body().toString())) {
-                        Toast.makeText(MainActivity.this, "Empty response! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
+                    if(response.body()!= null) {
+                        if (TextUtils.isEmpty(response.body().toString())) {
+                            Toast.makeText(MainActivity.this, "Empty response! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
+                        }
+                        List<RepoInstance> repositoryList = response.body();
+                        repoList.addAll(repositoryList);
+                        validateResponse(username, repositoryName);
                     }
-
-                    repoList.addAll(repositoryList);
-                    validateResponse(username, repositoryName);
+                    else{
+                        Toast.makeText(MainActivity.this, "Response is null! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
