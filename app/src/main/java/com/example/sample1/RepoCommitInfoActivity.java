@@ -8,8 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.sample1.model.commitinfo.Author;
+import com.example.sample1.model.commitinfo.CommitInstance;
 import com.example.sample1.util.RetrofitClient;
 import com.example.sample1.util.Utility;
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ import retrofit2.Callback;
 public class RepoCommitInfoActivity extends AppCompatActivity {
     private static final String TAG = "RepoCommitInfoActivity";
     private static final int PER_PAGE_SIZE = 1;
-    private ArrayList<Author.CommitInstance> commitInformationList = new ArrayList<>();
+    private ArrayList<CommitInstance> commitInformationList = new ArrayList<>();
     private RecyclerView.Adapter adapter;
     private int pageNumber = 1;
     boolean isLoading = false;
@@ -78,12 +77,12 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
     private void getCommitInformationInPages(int pageNumber) {
         Log.d(TAG, "RAR:: ********NEW REQUEST************");
         Log.d(TAG, "RAR:: getCommitInformationInPages"+pageNumber);
-        Call<List<Author.CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
-        call.enqueue(new Callback<List<Author.CommitInstance>>() {
+        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
+        call.enqueue(new Callback<List<CommitInstance>>() {
             @Override
-            public void onResponse(Call<List<Author.CommitInstance>> call, retrofit2.Response<List<Author.CommitInstance>> response) {
+            public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
                 Log.i(TAG, "RAR:: **********response.body():" + response.body());
-                List<Author.CommitInstance> commitInstanceList = response.body();
+                List<CommitInstance> commitInstanceList = response.body();
                 if(commitInstanceList != null) {
                     isLoading = false;
 
@@ -111,7 +110,7 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<List<Author.CommitInstance>> call, Throwable t) {
+            public void onFailure(Call<List<CommitInstance>> call, Throwable t) {
                 Log.i(TAG, "RAR:: Error:"+t.getMessage());
                 isLoading = false;
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();

@@ -1,6 +1,7 @@
 package com.example.sample1.util;
 
-import com.example.sample1.model.commitinfo.Author;
+import com.example.sample1.model.commitinfo.CommitInstance;
+import com.example.sample1.model.repoinfo.RepoInstance;
 
 import java.util.List;
 import retrofit2.Call;
@@ -19,12 +20,16 @@ public interface Api {
      * then no need to worry, but if you have your own API, make sure
      * you change the return type appropriately
      **/
+    //users/rakhirani22/repos
+    @GET("/users/{user}/repos")
+    Call<List<RepoInstance>> getRepoInformationForUser(@Path ("user") String user);
+
     @GET("commits?")
-    Call<List<Author.CommitInstance>> getCommitInformation(@Query("per_page") int pageSize, @Query("page") int currentPage);
+    Call<List<CommitInstance>> getCommitInformation(@Query("per_page") int pageSize, @Query("page") int currentPage);
 
     @GET("commits")
-    Call<List<Author.CommitInstance>> getCommitAllInformation();
-//repos/RakhiRani22/AlbumsDataList/commits
+    Call<List<CommitInstance>> getCommitAllInformation();
+
     @GET("/repos/{user}/{repo}/commits?")
-    Call<List<Author.CommitInstance>> getCommitInformationForRepos(@Path ("user") String user, @Path("repo") String repo, @Query("per_page") int pageSize, @Query("page") int currentPage);
+    Call<List<CommitInstance>> getCommitInformationForRepos(@Path ("user") String user, @Path("repo") String repo, @Query("per_page") int pageSize, @Query("page") int currentPage);
 }
