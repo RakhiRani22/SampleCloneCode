@@ -1,5 +1,6 @@
 package com.example.sample1;
 
+import android.app.Application;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -9,31 +10,39 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.sample1.model.commitinfo.CommitInstance;
-import com.example.sample1.network.RetrofitClient;
+import com.example.sample1.network.Api;
 import com.example.sample1.util.Utility;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Retrofit;
 
 public class RepoCommitInfoActivity extends AppCompatActivity {
     private static final String TAG = "RepoCommitInfoActivity";
     private static final int PER_PAGE_SIZE = 25;
-    private ArrayList<CommitInstance> commitInformationList = new ArrayList<>();
+    private ArrayList<CommitInstance> commitInformationList;
     private RecyclerView.Adapter adapter;
     private int pageNumber = 1;
     boolean isLoading = false;
     private String username;
     private String repositoryName;
 
+    @Inject
+    Retrofit retrofit;
+    Application applicationContext;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_repo_commit_info);
 
+        ((MyApplication) getApplication()).getNetComponent().inject(this);
         Intent intent = getIntent();
         username = intent.getStringExtra(Utility.USERNAME);
         repositoryName = intent.getStringExtra(Utility.REPOSITORY_NAME);
+        commitInformationList = new ArrayList<>();
 
         if (repositoryName == null) finish();
 
@@ -63,7 +72,7 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
                 super.onScrolled(recyclerView, dx, dy);
 
                 LinearLayoutManager linearLayoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
-                Log.i(TAG,"RAR:: isLoading"+isLoading);
+                Log.i(TAG,"isLoading"+isLoading);
                 if (!isLoading) {
                     if (linearLayoutManager != null && linearLayoutManager.findLastCompletelyVisibleItemPosition() == commitInformationList.size() - 1) {
                         getCommitInformationInPages(getNextPageNumber());
@@ -75,57 +84,47 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
     }
 
     private void getCommitInformationInPages(int pageNumber) {
-        Log.d(TAG, "RAR:: ********NEW REQUEST************");
-        Log.d(TAG, "RAR:: getCommitInformationInPages"+pageNumber);
+        Log.d(TAG, "PageNumber to be requested:"+pageNumber);
         if(Utility.isNetworkConnected(this)) {
-            Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
+            Api api = retrofit.create(Api.class);
+            Call<List<CommitInstance>> call = api.getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
             call.enqueue(new Callback<List<CommitInstance>>() {
                 @Override
                 public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
-                    Log.i(TAG, "RAR:: **********response.body():" + response.body());
+                    Log.i(TAG, "Response:" + response.body());
                     List<CommitInstance> commitInstanceList = response.body();
                     if (commitInstanceList != null) { //No commit found
                         if (!commitInstanceList.isEmpty()) { //Reached end of server data, no more request needed as last response was empty
                             isLoading = false;
-
                             commitInformationList.addAll(commitInstanceList);
-
-                            Log.i(TAG, "RAR:: **********response.body():" + response.body());
-
-                            //To test
-                    /*for (int index = 1; index < 25; index++) {
-                        String position = String.valueOf(((pageNumber - 1) * 25) + index);
-                        Author author = new Author("Author:" + position, null, null);
-                        Committer committer = new Committer("Committer:" + position, null, null);
-                        String message = "Message: ******** " + position + " ******";
-                        commitInformationList.add(new CommitInstance(position, new Commit(author, committer, message)));
-                        Log.i(TAG, "RAR:: **********Commit Message:" + message);
-                    }*/
                             adapter.notifyDataSetChanged();
                         }
                     } else {
-                        Toast.makeText(getApplicationContext(), "No commit done for this repository!", Toast.LENGTH_SHORT).show();
+                        displayMessage("No commit done for this repository!");
                         finish();
                     }
-
                 }
 
                 @Override
                 public void onFailure(Call<List<CommitInstance>> call, Throwable t) {
                     Log.i(TAG, "RAR:: Error:" + t.getMessage());
                     isLoading = false;
-                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                    displayMessage(t.getMessage());
                 }
             });
         }
         else
         {
-            Toast.makeText(getApplicationContext(), "No internet! Please check your internet connection.", Toast.LENGTH_SHORT).show();
+            displayMessage("No internet! Please check your internet connection.");
         }
     }
 
     private int getNextPageNumber(){
         pageNumber = pageNumber + 1;
         return pageNumber;
+    }
+
+    private void displayMessage(String message){
+        Toast.makeText(RepoCommitInfoActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 }

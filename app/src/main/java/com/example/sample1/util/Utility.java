@@ -12,27 +12,22 @@ public class Utility {
 
     public static boolean isNetworkConnected(Context context) {
         String status = null;
-        Log.d(TAG, "RAR:: Internet connected:"+status);
-        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = false;
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = connectivityManager.getActiveNetworkInfo();
         if (activeNetwork != null) {
             if (activeNetwork.getType() == ConnectivityManager.TYPE_WIFI) {
                 status = "Wifi enabled";
-                Log.d(TAG, "RAR:: Internet connected:"+status);
-                return true;
+                isConnected = true;
             } else if (activeNetwork.getType() == ConnectivityManager.TYPE_MOBILE) {
                 status = "Mobile data enabled";
-                Log.d(TAG, "RAR:: Internet connected:"+status);
-                return true;
-            }
-            else{
-                return false;
+                isConnected = true;
             }
         } else {
             status = "No internet is available";
-            Log.d(TAG, "RAR:: Internet connected:"+status);
-            return false;
+            isConnected = false;
         }
+        Log.d(TAG, "Network status:"+status+" isConnected:"+isConnected);
+        return isConnected;
     }
-
 }

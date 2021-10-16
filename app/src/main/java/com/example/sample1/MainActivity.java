@@ -2,26 +2,31 @@ package com.example.sample1;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.example.sample1.model.repoinfo.RepoInstance;
-import com.example.sample1.network.RetrofitClient;
+import com.example.sample1.network.Api;
+import com.example.sample1.util.DataValidator;
 import com.example.sample1.util.Utility;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 import retrofit2.Call;
 import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
+
+    @Inject
+    Retrofit retrofit;
+
     private ArrayList<RepoInstance> repoList = new ArrayList<>();
 
     @Override
@@ -29,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        ((MyApplication) getApplication()).getNetComponent().inject(this);
         Log.i("TAG", "code on create");
         final EditText usernameText = findViewById(R.id.username);
         final EditText repoNameText = findViewById(R.id.repo_name);
@@ -37,82 +43,75 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String username = usernameText.getText().toString().toLowerCase();
+                String username = usernameText.getText().toString();
                 String repositoryName = repoNameText.getText().toString();
-                if(TextUtils.isEmpty(username)){
-                    Toast.makeText(MainActivity.this, "Enter a valid username!", Toast.LENGTH_SHORT).show();
+                if(DataValidator.isUserInputValid(username) == false) {
+                    displayToast("Enter a valid username!");
                 }
-                else if(TextUtils.isEmpty(repositoryName)){
-                    Toast.makeText(MainActivity.this, "Enter a valid repository name!", Toast.LENGTH_SHORT).show();
+                else if(DataValidator.isUserInputValid(repositoryName) == false) {
+                    displayToast("Enter a valid repository name!");
                 }
-                else{
-                    getRepoInformationForUser(username, repositoryName);
+                else {
+                    getRepoInformationForUsername(username, repositoryName);
                 }
             }
         });
     }
 
-    private void getRepoInformationForUser(String username, String repositoryName) {
-        Log.d(TAG, "RAR:: ********NEW REQUEST************");
-        Log.d(TAG, "RAR:: getRepoInformationForUser");
+    private void getRepoInformationForUsername(String username, String repositoryName) {
+        Log.d(TAG, "Make network request for User:"+username+" Repo:"+repositoryName);
         if(Utility.isNetworkConnected(this)) {
-            Call<List<RepoInstance>> call = RetrofitClient.getInstance().getMyApi().getRepoInformationForUser(username);
+            Api api = retrofit.create(Api.class);
+            Call<List<RepoInstance>> call = api.getRepoInformationForUser(username);
             call.enqueue(new Callback<List<RepoInstance>>() {
                 @Override
-                public void onResponse(Call<List<RepoInstance>> call, retrofit2.Response<List<RepoInstance>> response) {
-                    Log.i(TAG, "RAR:: **********response.body():" + response.body());
+                public void onResponse(Call<List<RepoInstance>> call, Response<List<RepoInstance>> response) {
+                    Log.i(TAG, "Response received:" + response.body());
 
                     repoList.clear();
+                    Response<List<RepoInstance>> responseObj = response;
+                    String errorMessage = DataValidator.isValidResponse(responseObj);
 
-                    if (response.code() == 401) {
-                        Toast.makeText(MainActivity.this, "Two-factor authentication is active, please enter code.", Toast.LENGTH_SHORT).show();
-                    } else if (response.code() == 403) {
-                        Toast.makeText(MainActivity.this, "Maximum number of login attempts exceeded. Please try again later.", Toast.LENGTH_SHORT).show();
-
-                    } else if (!response.isSuccessful()) {
-                        Toast.makeText(MainActivity.this, "Cannot fetch data from GitHub! Please verify the username", Toast.LENGTH_SHORT).show();
-                    } else {
-                        if (response.body() != null) {
-                            if (TextUtils.isEmpty(response.body().toString())) {
-                                Toast.makeText(MainActivity.this, "Empty response! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
-                            }
-                            List<RepoInstance> repositoryList = response.body();
+                    if(errorMessage != null){
+                        displayToast(errorMessage);
+                    }
+                    else {
+                        Log.i(TAG, "Response received:" + response.body());
+                        List<RepoInstance> repositoryList = response.body();
+                        if(repositoryList!= null && !repositoryList.isEmpty()) {
                             repoList.addAll(repositoryList);
-                            validateResponse(username, repositoryName);
-                        } else {
-                            Toast.makeText(MainActivity.this, "Response is null! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
+                            handleReposResponse(username, repositoryName);
                         }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<List<RepoInstance>> call, Throwable t) {
-                    Log.i(TAG, "RAR:: Error:" + t.getMessage());
-                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "The request has failed: " + t.getMessage());
+                    displayToast(t.getMessage());
                 }
             });
         }
         else
         {
-            Toast.makeText(getApplicationContext(), "No internet! Please check your internet connection.", Toast.LENGTH_SHORT).show();
+            displayToast("No internet! Please check your internet connection.");
         }
     }
 
-    private void validateResponse(String username, String repositoryName){
-        Log.d(TAG,"RAR:: ******repoList:"+repoList.toString());
-        if (!repoList.isEmpty()) {
-            for (RepoInstance repositoryInstance : repoList) {
-                Log.d(TAG,"RAR:: repository name:"+repositoryInstance.getName());
-                if(repositoryInstance.getName().equalsIgnoreCase(repositoryName)) {
-                    Log.i(TAG, " Access successful!");
-                    Intent intent = new Intent(MainActivity.this, RepoCommitInfoActivity.class);
-                    intent.putExtra(Utility.USERNAME, username);
-                    intent.putExtra(Utility.REPOSITORY_NAME, repositoryName);
-                    startActivity(intent);
-                    return;
-                }
-            }
-            Toast.makeText(MainActivity.this, "The repository is not found!", Toast.LENGTH_SHORT).show();
+    private void handleReposResponse(String username, String repositoryName){
+        Log.i(TAG, "Response received");
+        if(DataValidator.isRepositoryFound(repoList, repositoryName)){
+            Intent intent = new Intent(MainActivity.this, RepoCommitInfoActivity.class);
+            intent.putExtra(Utility.USERNAME, username);
+            intent.putExtra(Utility.REPOSITORY_NAME, repositoryName);
+            startActivity(intent);
         }
+        else {
+            displayToast("The repository is not found!");
+        }
+    }
+
+    private void displayToast(String message){
+        Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show();
     }
 }
