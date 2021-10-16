@@ -77,21 +77,22 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
     private void getCommitInformationInPages(int pageNumber) {
         Log.d(TAG, "RAR:: ********NEW REQUEST************");
         Log.d(TAG, "RAR:: getCommitInformationInPages"+pageNumber);
-        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
-        call.enqueue(new Callback<List<CommitInstance>>() {
-            @Override
-            public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
-                Log.i(TAG, "RAR:: **********response.body():" + response.body());
-                List<CommitInstance> commitInstanceList = response.body();
-                if(commitInstanceList != null) { //No commit found
-                    if(!commitInstanceList.isEmpty()) { //Reached end of server data, no more request needed as last response was empty
-                        isLoading = false;
+        if(Utility.isNetworkConnected(this)) {
+            Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
+            call.enqueue(new Callback<List<CommitInstance>>() {
+                @Override
+                public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
+                    Log.i(TAG, "RAR:: **********response.body():" + response.body());
+                    List<CommitInstance> commitInstanceList = response.body();
+                    if (commitInstanceList != null) { //No commit found
+                        if (!commitInstanceList.isEmpty()) { //Reached end of server data, no more request needed as last response was empty
+                            isLoading = false;
 
-                        commitInformationList.addAll(commitInstanceList);
+                            commitInformationList.addAll(commitInstanceList);
 
-                        Log.i(TAG, "RAR:: **********response.body():" + response.body());
+                            Log.i(TAG, "RAR:: **********response.body():" + response.body());
 
-                        //To test
+                            //To test
                     /*for (int index = 1; index < 25; index++) {
                         String position = String.valueOf(((pageNumber - 1) * 25) + index);
                         Author author = new Author("Author:" + position, null, null);
@@ -100,24 +101,27 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
                         commitInformationList.add(new CommitInstance(position, new Commit(author, committer, message)));
                         Log.i(TAG, "RAR:: **********Commit Message:" + message);
                     }*/
-                        adapter.notifyDataSetChanged();
+                            adapter.notifyDataSetChanged();
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "No commit done for this repository!", Toast.LENGTH_SHORT).show();
+                        finish();
                     }
-                }
-                else
-                {
-                    Toast.makeText(getApplicationContext(), "No commit done for this repository!", Toast.LENGTH_SHORT).show();
-                    finish();
+
                 }
 
-            }
-
-            @Override
-            public void onFailure(Call<List<CommitInstance>> call, Throwable t) {
-                Log.i(TAG, "RAR:: Error:"+t.getMessage());
-                isLoading = false;
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<List<CommitInstance>> call, Throwable t) {
+                    Log.i(TAG, "RAR:: Error:" + t.getMessage());
+                    isLoading = false;
+                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "No internet! Please check your internet connection.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private int getNextPageNumber(){

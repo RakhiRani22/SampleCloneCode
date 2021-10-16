@@ -1,7 +1,10 @@
 package com.example.sample1;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
@@ -52,43 +55,47 @@ public class MainActivity extends AppCompatActivity {
     private void getRepoInformationForUser(String username, String repositoryName) {
         Log.d(TAG, "RAR:: ********NEW REQUEST************");
         Log.d(TAG, "RAR:: getRepoInformationForUser");
-        Call<List<RepoInstance>> call = RetrofitClient.getInstance().getMyApi().getRepoInformationForUser(username);
-        call.enqueue(new Callback<List<RepoInstance>>() {
-            @Override
-            public void onResponse(Call<List<RepoInstance>> call, retrofit2.Response<List<RepoInstance>> response) {
-                Log.i(TAG, "RAR:: **********response.body():" + response.body());
+        if(Utility.isNetworkConnected(this)) {
+            Call<List<RepoInstance>> call = RetrofitClient.getInstance().getMyApi().getRepoInformationForUser(username);
+            call.enqueue(new Callback<List<RepoInstance>>() {
+                @Override
+                public void onResponse(Call<List<RepoInstance>> call, retrofit2.Response<List<RepoInstance>> response) {
+                    Log.i(TAG, "RAR:: **********response.body():" + response.body());
 
-                repoList.clear();
+                    repoList.clear();
 
-                if (response.code() == 401) {
-                    Toast.makeText(MainActivity.this, "Two-factor authentication is active, please enter code.", Toast.LENGTH_SHORT).show();
-                } else if (response.code() == 403) {
-                    Toast.makeText(MainActivity.this, "Maximum number of login attempts exceeded. Please try again later.", Toast.LENGTH_SHORT).show();
+                    if (response.code() == 401) {
+                        Toast.makeText(MainActivity.this, "Two-factor authentication is active, please enter code.", Toast.LENGTH_SHORT).show();
+                    } else if (response.code() == 403) {
+                        Toast.makeText(MainActivity.this, "Maximum number of login attempts exceeded. Please try again later.", Toast.LENGTH_SHORT).show();
 
-                } else if (!response.isSuccessful()) {
-                    Toast.makeText(MainActivity.this, "Cannot fetch data from GitHub! Please verify the username", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    if(response.body()!= null) {
-                        if (TextUtils.isEmpty(response.body().toString())) {
-                            Toast.makeText(MainActivity.this, "Empty response! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
+                    } else if (!response.isSuccessful()) {
+                        Toast.makeText(MainActivity.this, "Cannot fetch data from GitHub! Please verify the username", Toast.LENGTH_SHORT).show();
+                    } else {
+                        if (response.body() != null) {
+                            if (TextUtils.isEmpty(response.body().toString())) {
+                                Toast.makeText(MainActivity.this, "Empty response! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
+                            }
+                            List<RepoInstance> repositoryList = response.body();
+                            repoList.addAll(repositoryList);
+                            validateResponse(username, repositoryName);
+                        } else {
+                            Toast.makeText(MainActivity.this, "Response is null! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
                         }
-                        List<RepoInstance> repositoryList = response.body();
-                        repoList.addAll(repositoryList);
-                        validateResponse(username, repositoryName);
-                    }
-                    else{
-                        Toast.makeText(MainActivity.this, "Response is null! No public repository for this user fetched.", Toast.LENGTH_SHORT).show();
                     }
                 }
-            }
 
-            @Override
-            public void onFailure(Call<List<RepoInstance>> call, Throwable t) {
-                Log.i(TAG, "RAR:: Error:"+t.getMessage());
-                Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onFailure(Call<List<RepoInstance>> call, Throwable t) {
+                    Log.i(TAG, "RAR:: Error:" + t.getMessage());
+                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
+        else
+        {
+            Toast.makeText(getApplicationContext(), "No internet! Please check your internet connection.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void validateResponse(String username, String repositoryName){
