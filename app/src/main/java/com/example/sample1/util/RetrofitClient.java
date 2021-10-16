@@ -9,7 +9,7 @@ public class RetrofitClient {
         private Api myApi;
 
         private RetrofitClient() {
-            Retrofit retrofit = new Retrofit.Builder().baseUrl(Utility.getUriBuilder("Rakhirani22","AlbumsDataList", "1", 0))
+            Retrofit retrofit = new Retrofit.Builder().baseUrl(Api.BASE_URL)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             myApi = retrofit.create(Api.class);

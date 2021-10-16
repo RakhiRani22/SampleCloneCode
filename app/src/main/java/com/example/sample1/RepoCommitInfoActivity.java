@@ -218,25 +218,26 @@ public class RepoCommitInfoActivity extends AppCompatActivity {
     private void getCommitInformationInPages(int pageNumber) {
         Log.d(TAG, "RAR:: ********NEW REQUEST************");
         Log.d(TAG, "RAR:: getCommitInformationInPages"+pageNumber);
-        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformation(PER_PAGE_SIZE, pageNumber);
+        Call<List<CommitInstance>> call = RetrofitClient.getInstance().getMyApi().getCommitInformationForRepos(username, repositoryName, PER_PAGE_SIZE, pageNumber);
         call.enqueue(new Callback<List<CommitInstance>>() {
             @Override
             public void onResponse(Call<List<CommitInstance>> call, retrofit2.Response<List<CommitInstance>> response) {
                 List<CommitInstance> commitInstanceList = response.body();
-                if(commitInstanceList.size() > 0){
+                if(commitInstanceList.size() > 0) {
                     isLoading = false;
-                }
-                commitInformationList.addAll(commitInstanceList);
 
-                Log.i(TAG, "RAR:: **********response.body():"+response.body());
-                //looping through all the heroes and inserting the names inside the string array
-                for (int index = 1; index < 25; index++) {
-                    String position = String.valueOf(((pageNumber - 1) * 25) + index);
-                    Author author = new Author("Author:"+position, null, null);
-                    Committer committer = new Committer("Committer:"+position, null, null);
-                    String message = "Message: ******** "+position+" ******";
-                    commitInformationList.add(new CommitInstance(position, new Commit(author, committer, message)));
-                    Log.i(TAG, "RAR:: **********Commit Message:"+message);
+                    commitInformationList.addAll(commitInstanceList);
+
+                    Log.i(TAG, "RAR:: **********response.body():" + response.body());
+                    //looping through all the heroes and inserting the names inside the string array
+                    for (int index = 1; index < 25; index++) {
+                        String position = String.valueOf(((pageNumber - 1) * 25) + index);
+                        Author author = new Author("Author:" + position, null, null);
+                        Committer committer = new Committer("Committer:" + position, null, null);
+                        String message = "Message: ******** " + position + " ******";
+                        commitInformationList.add(new CommitInstance(position, new Commit(author, committer, message)));
+                        Log.i(TAG, "RAR:: **********Commit Message:" + message);
+                    }
                 }
                 adapter.notifyDataSetChanged();
 
